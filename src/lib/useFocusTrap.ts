@@ -9,7 +9,7 @@ const FOCUSABLE_SELECTOR =
  * Pass autoFocus=false when the element already manages its own initial focus (e.g. via autoFocus attr).
  */
 export function useFocusTrap(
-  ref: RefObject<HTMLElement>,
+  ref: RefObject<HTMLElement | null>,
   {
     onEscape,
     autoFocus = true,

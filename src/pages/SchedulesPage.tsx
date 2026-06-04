@@ -199,7 +199,7 @@ export function SchedulesPage() {
         Object.entries(campusGroups).map(([campus, items]) => (
           <div key={campus} className="siis-sched-section">
             <h2 className="siis-sched-section-title">
-              {CAMPUS_LABELS[campus] ?? campus}
+              {CAMPUS_LABELS[campus as keyof typeof CAMPUS_LABELS] ?? campus}
             </h2>
             {items.map((d) => (
               <RestaurantScheduleCard key={d.restaurant.public_id} data={d} />

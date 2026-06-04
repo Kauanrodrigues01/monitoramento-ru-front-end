@@ -212,7 +212,7 @@ export function Dashboard() {
           {Object.entries(campusGroups).map(([campus, list]) => (
             <div key={campus}>
               <div className="siis-campus-label">
-                {CAMPUS_LABELS[campus] ?? campus}
+                {CAMPUS_LABELS[campus as keyof typeof CAMPUS_LABELS] ?? campus}
                 <span
                   style={{
                     marginLeft: 10,

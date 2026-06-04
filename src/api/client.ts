@@ -1,5 +1,16 @@
 const BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:8000/api/v1';
 
+const DEVICE_ID_KEY = 'siis_device_id';
+
+function getDeviceId(): string {
+  let id = localStorage.getItem(DEVICE_ID_KEY);
+  if (!id) {
+    id = crypto.randomUUID();
+    localStorage.setItem(DEVICE_ID_KEY, id);
+  }
+  return id;
+}
+
 export class ApiError extends Error {
   status: number;
   detail: string;
@@ -33,7 +44,9 @@ export async function apiFetch<T>(path: string, options: Options = {}): Promise<
     if (s) url += `?${s}`;
   }
 
-  const headers: Record<string, string> = {};
+  const headers: Record<string, string> = {
+    'X-Device-ID': getDeviceId(),
+  };
   if (body !== undefined) headers['Content-Type'] = 'application/json';
   if (adminKey) headers['X-Admin-Key'] = adminKey;
 
