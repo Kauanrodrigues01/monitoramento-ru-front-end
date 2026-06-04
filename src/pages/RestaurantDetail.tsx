@@ -16,7 +16,6 @@ import type {
 import { ReportForm } from '../components/ReportForm';
 import { STATUS_CONFIG } from '../components/StatusBadge';
 import {
-  DASHBOARD_REFRESH_MS,
   EXCEPTION_LABEL,
   MEAL_PERIOD_LABEL,
   PEAK_HOURS,
@@ -26,6 +25,7 @@ import {
 import { DEBUG_MODE } from '../lib/debug';
 import { formatTime, isAbortError } from '../lib/format';
 import { getUpcomingExceptions, isOpenNow } from '../lib/schedule';
+import { useSnapshotWebSocket } from '../lib/useSnapshotWebSocket';
 import { usePageTitle } from '../lib/usePageTitle';
 
 // ── Mock data helpers ─────────────────────────────────────────────────────────
@@ -401,13 +401,25 @@ export function RestaurantDetail() {
   useEffect(() => {
     const ac = new AbortController();
     loadData(ac.signal);
-    const timer = setInterval(() => loadData(ac.signal), DASHBOARD_REFRESH_MS);
-    return () => { clearInterval(timer); ac.abort(); };
+    return () => { ac.abort(); };
   }, [loadData]);
+
+  useSnapshotWebSocket((event) => {
+    if (!id || event.restaurant_public_id !== id) return;
+    setSnapshot({
+      meal_period: event.meal_period,
+      current_status: event.current_status,
+      reports_last_15m: event.reports_last_15m,
+      last_report_at: event.last_report_at,
+      confidence_score: event.confidence_score,
+      data_freshness_minutes: event.data_freshness_minutes,
+      updated_at: event.updated_at,
+    });
+    reportsApi.recent(id).then(setReports).catch(() => {});
+  });
 
   const handleReportSuccess = () => {
     setShowForm(false);
-    setTimeout(loadData, 1500);
   };
 
   if (loading) {

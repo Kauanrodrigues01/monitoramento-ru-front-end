@@ -56,9 +56,6 @@ export const PEAK_HOURS = [7, 8, 11, 12, 13, 17, 18] as const;
 
 // ── Tempos ────────────────────────────────────────────────────────────────────
 
-/** Intervalo de auto-refresh do dashboard em ms */
-export const DASHBOARD_REFRESH_MS = 30_000;
-
 /** Tempo para auto-dismiss de toasts em ms */
 export const TOAST_DISMISS_MS = 4_000;
 

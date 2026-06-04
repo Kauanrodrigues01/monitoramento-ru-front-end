@@ -8,11 +8,13 @@ import type {
   Restaurant,
   RestaurantSchedule,
   ScheduleException,
+  SnapshotUpdatedEvent,
 } from '../api/types';
 import { RestaurantCard } from '../components/RestaurantCard';
-import { CAMPUS_LABELS, DASHBOARD_REFRESH_MS } from '../lib/constants';
+import { CAMPUS_LABELS } from '../lib/constants';
 import { isAbortError } from '../lib/format';
 import { isOpenNow } from '../lib/schedule';
+import { useSnapshotWebSocket } from '../lib/useSnapshotWebSocket';
 import { usePageTitle } from '../lib/usePageTitle';
 
 function Skeleton() {
@@ -101,9 +103,27 @@ export function Dashboard() {
     };
 
     run();
-    const id = setInterval(run, DASHBOARD_REFRESH_MS);
-    return () => { clearInterval(id); ac.abort(); };
+    return () => { ac.abort(); };
   }, [loadData, recalcOpenNow]);
+
+  useSnapshotWebSocket((event: SnapshotUpdatedEvent) => {
+    setSnapshots((prev) => {
+      const existing = prev.get(event.restaurant_public_id);
+      if (!existing) return prev;
+      const next = new Map(prev);
+      next.set(event.restaurant_public_id, {
+        ...existing,
+        meal_period: event.meal_period,
+        current_status: event.current_status,
+        reports_last_15m: event.reports_last_15m,
+        last_report_at: event.last_report_at,
+        confidence_score: event.confidence_score,
+        updated_at: event.updated_at,
+      });
+      return next;
+    });
+    setLastUpdated(new Date());
+  });
 
   const campusGroups = useMemo(
     () =>

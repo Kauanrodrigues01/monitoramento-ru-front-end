@@ -106,3 +106,15 @@ export type ScheduleExceptionCreate = {
 
 export type ScheduleExceptionUpdate = Partial<Omit<ScheduleExceptionCreate, 'exception_date'>>;
 
+export type SnapshotUpdatedEvent = {
+  type: 'snapshot_updated';
+  restaurant_public_id: string;
+  meal_period: MealPeriodEnum;
+  current_status: SnapshotStatusEnum;
+  reports_last_15m: number;
+  last_report_at: string | null;
+  confidence_score: number;
+  data_freshness_minutes: number | null;
+  updated_at: string;
+};
+
