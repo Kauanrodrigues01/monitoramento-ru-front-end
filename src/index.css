@@ -1,0 +1,1554 @@
+@import "tailwindcss";
+
+/* ── Design tokens ── */
+:root {
+  --bg:        #eef2f9;
+  --surface:   #ffffff;
+  --surface2:  #f4f7fd;
+  --surface3:  #e6edf8;
+  --border:    #d1dced;
+  --border2:   #b4c9e4;
+  --text:      #0c1a2e;
+  --text2:     #3a527a;
+  --text3:     #7b96b8;
+  --blue:      #1a56db;
+  --blue2:     #1e40af;
+  --blue3:     #3b82f6;
+  --blue-bg:   #eff6ff;
+  --green:     #16a34a;
+  --red:       #dc2626;
+  --amber:     #d97706;
+  --mono:      'IBM Plex Mono', monospace;
+  --sans:      'IBM Plex Sans', sans-serif;
+}
+
+/* ── Reset & base ── */
+*, *::before, *::after { box-sizing: border-box; }
+
+html { background: var(--bg); }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  margin: 0; padding: 0;
+}
+
+/* dot grid */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: radial-gradient(circle, #b4c9e4 1px, transparent 1px);
+  background-size: 24px 24px;
+  opacity: 0.55;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ambient glow */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 60% 40% at 10% 30%, rgba(26,86,219,0.07) 0%, transparent 100%),
+    radial-gradient(ellipse 50% 30% at 90% 80%, rgba(59,130,246,0.04) 0%, transparent 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+:focus-visible { outline: 2px solid var(--blue3); outline-offset: 2px; }
+
+/* ── Keyframes ── */
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.35; transform: scale(0.7); }
+}
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.35; }
+}
+@keyframes feed-in {
+  from { opacity: 0; transform: translateX(-6px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(-16px) scale(0.95); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.animate-slide-up { animation: slide-up 0.25s ease-out both; }
+
+/* ── Panel system ── */
+.siis-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(26,86,219,0.07), 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.siis-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 18px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface2);
+  gap: 8px;
+}
+
+.siis-panel-title {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--blue2);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.siis-panel-tag {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--text3);
+  letter-spacing: 1px;
+}
+
+/* ── Status display ── */
+.siis-status-main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 28px 20px 22px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  min-height: 160px;
+  transition: background 0.4s ease;
+}
+
+.siis-status-glow {
+  position: absolute;
+  width: 200%; height: 120px;
+  top: -60px; left: -50%;
+  border-radius: 50%;
+  opacity: 0.18;
+  transition: background 0.4s ease;
+}
+
+.siis-status-icon {
+  font-size: 44px;
+  margin-bottom: 10px;
+  line-height: 1;
+  position: relative;
+  z-index: 1;
+}
+
+.siis-status-label {
+  font-family: var(--mono);
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  margin-bottom: 3px;
+  position: relative;
+  z-index: 1;
+}
+
+.siis-status-sub {
+  font-family: var(--mono);
+  font-size: 8px;
+  color: var(--text3);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  position: relative;
+  z-index: 1;
+}
+
+.siis-freshness {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 12px;
+  border-radius: 20px;
+  font-family: var(--mono);
+  font-size: 8px;
+  letter-spacing: 1px;
+  position: relative;
+  z-index: 1;
+  margin-top: 10px;
+}
+.siis-freshness.fresh { background: rgba(22,163,74,0.10); color: #15803d; border: 1px solid rgba(22,163,74,0.25); }
+.siis-freshness.stale { background: rgba(217,119,6,0.10);  color: #92400e; border: 1px solid rgba(217,119,6,0.25); animation: blink 2s step-end infinite; }
+
+/* ── Meta grid ── */
+.siis-meta-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  background: var(--border);
+  border-top: 1px solid var(--border);
+}
+
+.siis-meta-cell {
+  background: var(--surface);
+  padding: 11px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.siis-meta-label {
+  font-family: var(--mono);
+  font-size: 8px;
+  color: var(--text3);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.siis-meta-value {
+  font-family: var(--mono);
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text);
+}
+.siis-meta-value.good { color: var(--green); }
+.siis-meta-value.warn { color: var(--amber); }
+.siis-meta-value.bad  { color: var(--red);   }
+
+/* ── Report form ── */
+.siis-form-section {
+  padding: 14px 18px 18px;
+  border-top: 1px solid var(--border);
+  background: var(--surface2);
+}
+
+.siis-form-title {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--blue);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.siis-status-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 5px;
+  margin-bottom: 8px;
+}
+
+.siis-status-btn {
+  padding: 8px 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text2);
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.15s;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.siis-status-btn:hover   { border-color: var(--blue3); background: var(--blue-bg); color: var(--text); }
+.siis-status-btn.selected { font-weight: 700; }
+.siis-status-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.siis-geo-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  margin-bottom: 8px;
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--text3);
+  transition: all 0.2s;
+}
+.siis-geo-bar.ok      { border-color: #86efac; color: #15803d; background: #f0fdf4; }
+.siis-geo-bar.warn    { border-color: #fde68a; color: #92400e; background: #fffbeb; }
+.siis-geo-bar.error   { border-color: #fca5a5; color: #991b1b; background: #fef2f2; }
+.siis-geo-bar.loading { animation: blink 1.5s ease-in-out infinite; }
+
+.siis-submit-btn {
+  width: 100%;
+  padding: 11px;
+  background: var(--blue);
+  color: #fff;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 3px 12px rgba(26,86,219,0.30);
+}
+.siis-submit-btn:hover:not(:disabled) {
+  background: var(--blue2);
+  transform: translateY(-1px);
+  box-shadow: 0 5px 18px rgba(26,86,219,0.40);
+}
+.siis-submit-btn:disabled {
+  background: var(--surface3);
+  color: var(--text3);
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+.siis-error-bar {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 9px 12px;
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  font-family: var(--mono);
+  font-size: 9px;
+  color: #991b1b;
+}
+
+/* ── Feed ── */
+.siis-feed-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 18px;
+  border-bottom: 1px solid var(--border);
+  animation: feed-in 0.3s ease;
+}
+.siis-feed-item:last-child { border-bottom: none; }
+
+.siis-feed-status {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+}
+.siis-feed-meta {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--text3);
+  margin-top: 2px;
+}
+.siis-feed-time {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--text3);
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+/* ── Heatmap ── */
+.siis-heatmap-cell {
+  border-radius: 3px;
+  transition: opacity 0.15s;
+  cursor: default;
+  aspect-ratio: 1.2;
+}
+.siis-heatmap-cell:hover { opacity: 0.65 !important; }
+.siis-heatmap-label {
+  font-family: var(--mono);
+  font-size: 8px;
+  color: var(--text3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── Mock warning badge ── */
+.siis-mock-badge {
+  font-family: var(--mono);
+  font-size: 8px;
+  letter-spacing: 1px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: rgba(217,119,6,0.10);
+  color: #92400e;
+  border: 1px solid rgba(217,119,6,0.28);
+}
+
+/* ── Period tabs ── */
+.siis-period-tabs { display: flex; background: var(--surface3); border-radius: 8px; padding: 2px; }
+.siis-period-tab {
+  padding: 4px 12px;
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: var(--text3);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.siis-period-tab.active { background: var(--surface); color: var(--text); box-shadow: 0 1px 4px rgba(0,0,0,0.08); font-weight: 700; }
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar       { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: var(--surface2); }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+/* ── App container ── */
+.siis-app {
+  position: relative;
+  z-index: 1;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 20px 48px;
+}
+
+/* ── Header ── */
+.siis-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 22px 0 18px;
+  border-bottom: 2px solid var(--blue);
+  margin-bottom: 24px;
+}
+
+.siis-header-left  { display: flex; align-items: center; gap: 16px; }
+.siis-header-right { display: flex; align-items: center; gap: 10px; }
+
+.siis-logo-block { display: flex; flex-direction: column; gap: 1px; }
+
+.siis-logo-tag {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--blue);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+.siis-logo-title {
+  font-family: var(--mono);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.5px;
+}
+.siis-logo-title span { color: var(--blue); }
+
+.siis-header-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 14px;
+  border: 1px solid var(--border2);
+  border-radius: 20px;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text2);
+  background: var(--surface);
+  box-shadow: 0 1px 4px rgba(26,86,219,0.08);
+}
+
+.siis-live-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--green);
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+.siis-clock {
+  font-family: var(--mono);
+  font-size: 14px;
+  color: var(--text2);
+  letter-spacing: 1px;
+  background: var(--surface);
+  padding: 5px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+
+.siis-ws-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--text2);
+  padding: 5px 14px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--surface);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+
+.siis-ws-dot { width: 6px; height: 6px; border-radius: 50%; }
+.siis-ws-dot.connected    { background: var(--green); animation: pulse-dot 2s ease-in-out infinite; }
+.siis-ws-dot.disconnected { background: var(--red); }
+
+/* ── Nav ── */
+.siis-nav { display: flex; gap: 4px; }
+
+.siis-nav-link {
+  padding: 6px 16px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text3);
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.15s;
+  text-decoration: none;
+}
+.siis-nav-link:hover  { color: var(--blue); background: var(--blue-bg); border-color: var(--border2); }
+.siis-nav-link.active { color: var(--blue); background: var(--blue-bg); border-color: var(--blue); font-weight: 700; }
+
+/* ── Layout grids ── */
+.siis-grid-main {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+  align-items: stretch;
+}
+
+.siis-grid-bottom {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+@media (max-width: 900px) {
+  .siis-grid-main   { grid-template-columns: 1fr; }
+  .siis-grid-bottom { grid-template-columns: 1fr; }
+}
+
+/* ── RU tab selector (dashboard) ── */
+.siis-ru-selector { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }
+
+.siis-ru-tab {
+  padding: 9px 20px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text2);
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.15s;
+  text-transform: uppercase;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.siis-ru-tab:hover { border-color: var(--blue3); color: var(--blue); background: var(--blue-bg); }
+.siis-ru-tab.active {
+  border-color: var(--blue);
+  color: var(--blue);
+  background: var(--blue-bg);
+  font-weight: 700;
+  box-shadow: 0 0 0 3px rgba(26,86,219,0.12);
+}
+
+/* ── Campus section label ── */
+.siis-campus-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--blue2);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+/* ── Restaurant card (dashboard) ── */
+.siis-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(26,86,219,0.07), 0 1px 3px rgba(0,0,0,0.04);
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+  transition: box-shadow 0.15s, border-color 0.15s;
+}
+.siis-card:hover {
+  box-shadow: 0 4px 20px rgba(26,86,219,0.14), 0 2px 6px rgba(0,0,0,0.06);
+  border-color: var(--border2);
+}
+
+.siis-card-bar { height: 3px; width: 100%; transition: opacity 0.2s; }
+
+.siis-card-body {
+  padding: 14px 18px 16px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.siis-card-name {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.2px;
+}
+
+.siis-card-campus {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--text3);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+.siis-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: auto;
+}
+
+.siis-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-family: var(--mono);
+  font-weight: 700;
+  border: 1px solid;
+}
+
+/* Badge size variants — controladas por CSS para serem responsivas */
+.siis-status-badge--sm { font-size: 9px; }
+.siis-status-badge--sm .siis-status-badge__icon { font-size: 7px; }
+
+.siis-status-badge--md { font-size: 11px; }
+.siis-status-badge--md .siis-status-badge__icon { font-size: 9px; }
+
+.siis-status-badge--lg { font-size: 13px; }
+.siis-status-badge--lg .siis-status-badge__icon { font-size: 11px; }
+
+.siis-open-badge {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 20px;
+  letter-spacing: 0.5px;
+}
+.siis-open-badge.open   { background: rgba(22,163,74,0.10);  color: #15803d; border: 1px solid rgba(22,163,74,0.28); }
+.siis-open-badge.closed { background: rgba(220,38,38,0.08);  color: #991b1b; border: 1px solid rgba(220,38,38,0.25); }
+
+.siis-reports-count {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--text3);
+  text-align: right;
+}
+
+/* ── Timeline chart ── */
+.siis-timeline-wrap { padding: 20px; flex: 1; display: flex; flex-direction: column; }
+.siis-chart-area    { flex: 1; position: relative; min-height: 180px; }
+.siis-chart-svg     { width: 100%; height: 100%; overflow: visible; }
+
+.siis-legend { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 12px; }
+.siis-legend-item { display: flex; align-items: center; gap: 5px; font-family: var(--mono); font-size: 9px; color: var(--text2); }
+.siis-legend-dot  { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+
+/* ── Geo disclaimer ── */
+.siis-geo-disclaimer {
+  margin-top: 8px;
+  font-family: var(--mono);
+  font-size: 8px;
+  color: var(--text3);
+  text-align: center;
+  letter-spacing: 1px;
+}
+
+/* ── Confidence bar (feed) ── */
+.siis-conf-wrap  { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
+.siis-conf-track { flex: 1; height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+.siis-conf-fill  { height: 100%; border-radius: 2px; transition: width 0.5s ease; }
+.siis-conf-label { font-family: var(--mono); font-size: 9px; color: var(--text3); width: 28px; text-align: right; }
+
+/* ── Toast ── */
+.siis-toast-wrap {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 9000;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.siis-toast {
+  padding: 12px 18px;
+  border-radius: 10px;
+  font-family: var(--mono);
+  font-size: 11px;
+  min-width: 260px;
+  animation: toast-in 0.3s cubic-bezier(0.34,1.56,0.64,1) both;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+  cursor: pointer;
+}
+.siis-toast.success { background: #f0fdf4; border: 1px solid #86efac; color: #15803d; }
+.siis-toast.error   { background: #fef2f2; border: 1px solid #fca5a5; color: #991b1b; }
+.siis-toast.info    { background: #eff6ff; border: 1px solid #93c5fd; color: #1d4ed8; }
+
+/* ── Cooldown bar ── */
+.siis-cooldown-bar  { height: 3px; background: var(--border); border-radius: 2px; margin-top: 8px; overflow: hidden; }
+.siis-cooldown-fill { height: 100%; background: var(--blue3); transition: width 1s linear; }
+
+/* ── Dashboard cards grid ── */
+.siis-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+/* ── Campus column layout (desktop) ────────────────────────────────────────
+   Mobile/tablet: grupos de campus empilhados verticalmente.
+   1280px+: grupos lado a lado como colunas; dentro de cada coluna,
+            cards se empilham verticalmente (1 por linha).
+   ────────────────────────────────────────────────────────────────────── */
+.siis-campuses-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+@media (min-width: 1280px) {
+  .siis-campuses-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+    align-items: start;
+  }
+
+  /* Dentro de cada coluna de campus, uma carta por linha */
+  .siis-campuses-grid .siis-cards-grid {
+    grid-template-columns: 1fr;
+    margin-bottom: 0;
+  }
+
+  /* Cards ficam mais altos no layout de coluna */
+  .siis-campuses-grid .siis-card-body {
+    padding: 16px 20px 18px;
+    gap: 14px;
+  }
+}
+
+/* ── Responsive typography ─────────────────────────────────────────────────
+   Mobile-first: tamanhos base pequenos (≤767px).
+   768px  (md) – tablet/laptop pequeno: +2px nos textos mono menores.
+   1280px (xl) – desktop: mais um incremento em todos os elementos.
+   ────────────────────────────────────────────────────────────────────── */
+
+@media (min-width: 768px) {
+  /* Header */
+  .siis-logo-tag     { font-size: 11px; letter-spacing: 4px; }
+  .siis-logo-title   { font-size: 24px; }
+  .siis-header-badge { font-size: 12px; }
+  .siis-clock        { font-size: 16px; }
+  .siis-ws-indicator { font-size: 11px; }
+  .siis-nav-link     { font-size: 12px; padding: 7px 20px; }
+
+  /* Panels */
+  .siis-panel-title { font-size: 12px; letter-spacing: 2.5px; }
+  .siis-panel-tag   { font-size: 11px; }
+
+  /* Status */
+  .siis-status-label { font-size: 26px; }
+  .siis-status-sub   { font-size: 10px; letter-spacing: 4px; }
+  .siis-status-icon  { font-size: 52px; }
+  .siis-freshness    { font-size: 10px; }
+
+  /* Meta grid */
+  .siis-meta-label { font-size: 10px; letter-spacing: 2.5px; }
+  .siis-meta-value { font-size: 20px; }
+
+  /* Form */
+  .siis-form-title { font-size: 11px; letter-spacing: 2.5px; }
+  .siis-status-btn { font-size: 11px; padding: 10px 10px; }
+  .siis-submit-btn { font-size: 12px; }
+
+  /* Feed */
+  .siis-feed-status { font-size: 13px; }
+  .siis-feed-meta   { font-size: 11px; }
+  .siis-feed-time   { font-size: 11px; }
+
+  /* Heatmap */
+  .siis-heatmap-label { font-size: 10px; }
+
+  /* Legend / "horários de pico" */
+  .siis-legend-item { font-size: 10px; }
+
+  /* Chart SVG text */
+  .siis-chart-svg text { font-size: 10px; }
+
+  /* Geo disclaimer */
+  .siis-geo-disclaimer { font-size: 10px; }
+
+  /* Error bar */
+  .siis-error-bar { font-size: 11px; }
+
+  /* Toast */
+  .siis-toast { font-size: 12px; min-width: 300px; }
+
+  /* Period tabs */
+  .siis-period-tab { font-size: 11px; padding: 5px 16px; }
+
+  /* Cards (dashboard) */
+  .siis-card-name      { font-size: 14px; }
+  .siis-card-campus    { font-size: 10px; letter-spacing: 2px; }
+  .siis-open-badge     { font-size: 10px; }
+  .siis-reports-count  { font-size: 10px; }
+
+  /* Status badge */
+  .siis-status-badge--sm { font-size: 11px; }
+  .siis-status-badge--sm .siis-status-badge__icon { font-size: 9px; }
+  .siis-status-badge--md { font-size: 12px; }
+  .siis-status-badge--md .siis-status-badge__icon { font-size: 10px; }
+  .siis-status-badge--lg { font-size: 14px; }
+  .siis-status-badge--lg .siis-status-badge__icon { font-size: 12px; }
+
+  /* Campus section label */
+  .siis-campus-label { font-size: 11px; letter-spacing: 3.5px; }
+
+  /* Mock badge */
+  .siis-mock-badge { font-size: 10px; padding: 4px 10px; }
+}
+
+@media (min-width: 1280px) {
+  /* Header */
+  .siis-logo-tag     { font-size: 12px; }
+  .siis-logo-title   { font-size: 26px; }
+  .siis-clock        { font-size: 17px; }
+  .siis-nav-link     { font-size: 13px; }
+
+  /* Panels */
+  .siis-panel-title { font-size: 13px; }
+  .siis-panel-tag   { font-size: 12px; }
+
+  /* Status */
+  .siis-status-sub  { font-size: 11px; }
+  .siis-freshness   { font-size: 11px; }
+
+  /* Meta grid */
+  .siis-meta-label { font-size: 11px; }
+  .siis-meta-value { font-size: 22px; }
+
+  /* Form */
+  .siis-form-title { font-size: 12px; }
+  .siis-status-btn { font-size: 12px; }
+  .siis-submit-btn { font-size: 13px; letter-spacing: 2.5px; }
+
+  /* Feed */
+  .siis-feed-status { font-size: 14px; }
+  .siis-feed-meta   { font-size: 12px; }
+  .siis-feed-time   { font-size: 12px; }
+
+  /* Cards (dashboard) */
+  .siis-card-name      { font-size: 16px; }
+  .siis-card-campus    { font-size: 11px; letter-spacing: 2.5px; }
+  .siis-open-badge     { font-size: 11px; padding: 4px 12px; }
+  .siis-reports-count  { font-size: 11px; }
+
+  /* Status badge */
+  .siis-status-badge--sm { font-size: 13px; }
+  .siis-status-badge--sm .siis-status-badge__icon { font-size: 11px; }
+  .siis-status-badge--md { font-size: 14px; }
+  .siis-status-badge--md .siis-status-badge__icon { font-size: 12px; }
+  .siis-status-badge--lg { font-size: 16px; }
+  .siis-status-badge--lg .siis-status-badge__icon { font-size: 14px; }
+
+  /* Campus section label */
+  .siis-campus-label { font-size: 12px; letter-spacing: 4px; }
+
+  /* Mock badge */
+  .siis-mock-badge { font-size: 12px; padding: 4px 12px; letter-spacing: 1.5px; }
+
+  /* Legend / "horários de pico" */
+  .siis-legend-item { font-size: 11px; }
+
+  /* Heatmap */
+  .siis-heatmap-label { font-size: 11px; }
+
+  /* Chart SVG text */
+  .siis-chart-svg text { font-size: 11px; }
+
+  /* Geo disclaimer */
+  .siis-geo-disclaimer { font-size: 11px; }
+
+  /* Error bar */
+  .siis-error-bar { font-size: 12px; }
+
+  /* Toast */
+  .siis-toast { font-size: 13px; min-width: 340px; }
+}
+
+/* ── Panel flex-col helper ── */
+.siis-panel--flex-col { display: flex; flex-direction: column; }
+.siis-panel__body     { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+
+/* ── Breadcrumb ── */
+.siis-breadcrumb {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text3);
+  text-decoration: none;
+  letter-spacing: 1px;
+  margin-bottom: 16px;
+  transition: color 0.15s;
+}
+.siis-breadcrumb:hover { color: var(--blue); }
+
+/* ── Debug banner ── */
+.siis-debug-banner {
+  margin-bottom: 12px;
+  padding: 8px 14px;
+  background: rgba(217,119,6,0.10);
+  border: 1px solid rgba(217,119,6,0.35);
+  border-radius: 8px;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: #92400e;
+  letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ── Active exception banner ── */
+.siis-exception-banner {
+  margin-top: 12px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-family: var(--mono);
+  font-size: 11px;
+  position: relative;
+  z-index: 1;
+}
+.siis-exception-banner.closed  { background: #fef2f2; border: 1px solid #fecaca; }
+.siis-exception-banner.special { background: #fffbeb; border: 1px solid #fde68a; }
+
+.siis-exception-banner__icon { font-size: 14px; margin-top: 1px; }
+.siis-exception-banner.closed  .siis-exception-banner__icon { color: #dc2626; }
+.siis-exception-banner.special .siis-exception-banner__icon { color: #d97706; }
+
+.siis-exception-banner__title { font-weight: 700; }
+.siis-exception-banner.closed  .siis-exception-banner__title { color: #991b1b; }
+.siis-exception-banner.special .siis-exception-banner__title { color: #92400e; }
+
+.siis-exception-banner__detail { margin-top: 2px; font-size: 10px; }
+.siis-exception-banner.closed  .siis-exception-banner__detail { color: #dc2626; }
+.siis-exception-banner.special .siis-exception-banner__detail { color: #d97706; }
+
+/* ── Cancel button ── */
+.siis-cancel-btn {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  color: #dc2626;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  cursor: pointer;
+  padding: 8px 16px;
+  letter-spacing: 1px;
+  text-align: center;
+  width: 100%;
+  margin-top: 4px;
+  transition: background 0.15s;
+}
+.siis-cancel-btn:hover { background: #fee2e2; }
+
+/* ── Schedule row ── */
+.siis-schedule-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 18px;
+  border-bottom: 1px solid var(--border);
+  font-family: var(--mono);
+}
+.siis-schedule-row__day  { font-size: 11px; color: var(--text2); }
+.siis-schedule-row__time {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text);
+  background: var(--surface2);
+  padding: 3px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+
+/* ── Upcoming exception row ── */
+.siis-exception-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 18px;
+  border-bottom: 1px solid var(--border);
+  font-family: var(--mono);
+}
+.siis-exception-row:last-child { border-bottom: none; }
+.siis-exception-row__date {
+  font-size: 11px;
+  font-weight: 700;
+  color: #92400e;
+  background: rgba(217,119,6,0.08);
+  border: 1px solid rgba(217,119,6,0.25);
+  padding: 3px 8px;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+.siis-exception-row__label  { font-size: 11px; font-weight: 700; color: var(--text); }
+.siis-exception-row__detail { font-size: 10px; color: var(--text3); margin-top: 2px; }
+
+/* ── Closed footer / open footer ── */
+.siis-closed-footer {
+  padding: 14px 18px;
+  border-top: 1px solid var(--border);
+  background: var(--surface2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text3);
+  letter-spacing: 1px;
+}
+.siis-open-footer {
+  padding: 16px 18px;
+  border-top: 1px solid var(--border);
+  background: var(--surface2);
+  text-align: center;
+}
+
+/* ── Feed empty state ── */
+.siis-feed-empty {
+  padding: 32px 16px;
+  text-align: center;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text3);
+  letter-spacing: 2px;
+}
+
+/* ── Freshness wrapper (inside status area) ── */
+.siis-freshness-wrap { margin-top: 14px; position: relative; z-index: 1; }
+
+/* ═══════════════════════════════════════════════════════════════════
+   404 PAGE
+   ═══════════════════════════════════════════════════════════════════ */
+.siis-404-body {
+  padding: 56px 24px 48px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+.siis-404-code {
+  font-family: var(--mono);
+  font-size: 80px;
+  font-weight: 700;
+  color: var(--border2);
+  letter-spacing: -4px;
+  line-height: 1;
+}
+.siis-404-title {
+  font-family: var(--mono);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+.siis-404-sub {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text3);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+.siis-404-btn {
+  display: inline-block;
+  width: auto;
+  padding: 10px 32px;
+  margin-top: 8px;
+  text-decoration: none;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   MODAL (LocationModal)
+   ═══════════════════════════════════════════════════════════════════ */
+.siis-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 16px;
+}
+@media (min-width: 640px) {
+  .siis-modal-overlay { align-items: center; }
+}
+.siis-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(4px);
+}
+.siis-modal-dialog {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 360px;
+  overflow: hidden;
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+}
+.siis-modal-header {
+  background: var(--blue);
+  padding: 24px;
+  text-align: center;
+}
+.siis-modal-icon {
+  margin: 0 auto 12px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+}
+.siis-modal-title {
+  font-family: var(--sans);
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+}
+.siis-modal-subtitle {
+  margin-top: 4px;
+  font-family: var(--sans);
+  font-size: 13px;
+  color: rgba(255,255,255,0.75);
+}
+.siis-modal-body { padding: 24px; }
+.siis-modal-text {
+  text-align: center;
+  font-family: var(--sans);
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--text2);
+}
+.siis-modal-text strong { color: var(--text); }
+.siis-modal-actions { margin-top: 20px; display: flex; flex-direction: column; gap: 8px; }
+.siis-modal-confirm-btn {
+  width: 100%;
+  padding: 12px;
+  background: var(--blue);
+  color: #fff;
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(26,86,219,0.3);
+  transition: background 0.15s, transform 0.1s;
+}
+.siis-modal-confirm-btn:hover  { background: var(--blue2); }
+.siis-modal-confirm-btn:active { transform: scale(0.99); }
+.siis-modal-cancel-btn {
+  width: 100%;
+  padding: 10px;
+  background: var(--surface);
+  color: var(--text2);
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 500;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.siis-modal-cancel-btn:hover { background: var(--surface2); }
+
+/* ═══════════════════════════════════════════════════════════════════
+   SCHEDULES PAGE
+   ═══════════════════════════════════════════════════════════════════ */
+.siis-page-header { margin-bottom: 8px; }
+.siis-page-title {
+  font-family: var(--sans);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text);
+}
+.siis-page-subtitle {
+  margin-top: 4px;
+  font-family: var(--sans);
+  font-size: 13px;
+  color: var(--text3);
+}
+.siis-sched-section { display: flex; flex-direction: column; gap: 12px; }
+.siis-sched-section-title {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  color: var(--text3);
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+.siis-sched-skeleton {
+  height: 224px;
+  border-radius: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  animation: pulse 2s ease-in-out infinite;
+}
+.siis-sched-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  border-radius: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 64px 20px;
+  text-align: center;
+}
+.siis-sched-empty__icon { font-size: 36px; }
+.siis-sched-empty__text { font-family: var(--mono); font-size: 11px; color: var(--text2); }
+.siis-sched-card {
+  overflow: hidden;
+  border-radius: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: 0 2px 8px rgba(26,86,219,0.05), 0 1px 3px rgba(0,0,0,0.04);
+}
+.siis-sched-card__header {
+  border-bottom: 1px solid var(--border);
+  background: var(--surface2);
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.siis-sched-card__title {
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+.siis-sched-card__meta {
+  margin-top: 2px;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text3);
+}
+.siis-sched-card__body { padding: 20px; }
+.siis-inactive-tag {
+  flex-shrink: 0;
+  border-radius: 20px;
+  background: var(--surface3);
+  border: 1px solid var(--border);
+  padding: 2px 10px;
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--text3);
+}
+/* Schedule matrix table */
+.siis-sched-table { overflow-x: auto; }
+.siis-sched-table table { width: 100%; border-collapse: collapse; }
+.siis-sched-table th {
+  padding-bottom: 10px;
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text3);
+  text-align: center;
+}
+.siis-sched-table th:first-child { text-align: left; padding-right: 16px; }
+.siis-sched-table th.is-today { color: var(--blue); }
+.siis-sched-table td { padding: 10px 0; border-top: 1px solid var(--border); text-align: center; }
+.siis-sched-table td:first-child {
+  text-align: left;
+  padding-right: 16px;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text2);
+}
+.siis-sched-time {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+.siis-sched-time.is-today { font-weight: 700; color: var(--blue2); }
+.siis-sched-time__sub { display: block; color: var(--text3); }
+.siis-sched-dash { color: var(--border2); }
+/* Exceptions list in schedule card */
+.siis-sched-exc { margin-top: 16px; border-top: 1px solid var(--border); padding-top: 16px; }
+.siis-sched-exc__label {
+  margin-bottom: 10px;
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--text3);
+}
+.siis-sched-exc-item { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 10px; }
+.siis-sched-exc-item:last-child { margin-bottom: 0; }
+.siis-sched-exc-date {
+  flex-shrink: 0;
+  border-radius: 8px;
+  background: rgba(217,119,6,0.08);
+  border: 1px solid rgba(217,119,6,0.25);
+  padding: 3px 8px;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  color: #92400e;
+  font-variant-numeric: tabular-nums;
+}
+.siis-sched-exc-label { font-family: var(--mono); font-size: 10px; font-weight: 500; color: var(--text2); }
+.siis-sched-exc-detail { font-family: var(--mono); font-size: 9px; color: var(--text3); margin-top: 2px; }
+
+/* ═══════════════════════════════════════════════════════════════════
+   ADMIN PANEL
+   ═══════════════════════════════════════════════════════════════════ */
+.siis-input,
+.siis-select {
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  padding: 10px 12px;
+  font-family: var(--sans);
+  font-size: 13px;
+  color: var(--text);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  transition: border-color 0.15s, box-shadow 0.15s;
+  appearance: none;
+}
+.siis-input:focus,
+.siis-select:focus {
+  outline: none;
+  border-color: var(--blue3);
+  box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+}
+.siis-field { display: flex; flex-direction: column; gap: 6px; }
+.siis-field-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--text3);
+}
+.siis-admin-form {
+  overflow: hidden;
+  border-radius: 12px;
+  border: 1px solid #bfdbfe;
+  background: #eff6ff;
+  box-shadow: 0 1px 4px rgba(26,86,219,0.08);
+}
+.siis-admin-form__header {
+  border-bottom: 1px solid #bfdbfe;
+  background: rgba(219,234,254,0.5);
+  padding: 12px 20px;
+}
+.siis-admin-form__title {
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 600;
+  color: #1e3a8a;
+}
+.siis-admin-form__body { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+.siis-admin-form__error {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  border-radius: 10px;
+  border: 1px solid #fecaca;
+  background: #fef2f2;
+  padding: 10px 14px;
+  font-family: var(--sans);
+  font-size: 12px;
+  color: #b91c1c;
+}
+.siis-admin-form__actions { display: flex; gap: 8px; padding-top: 4px; }
+.siis-admin-save-btn {
+  border-radius: 10px;
+  background: var(--blue);
+  padding: 9px 20px;
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(26,86,219,0.25);
+  transition: background 0.15s;
+}
+.siis-admin-save-btn:hover { background: var(--blue2); }
+.siis-admin-cancel-sm {
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  padding: 9px 20px;
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text2);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.siis-admin-cancel-sm:hover { background: var(--surface2); }
+.siis-admin-list { display: flex; flex-direction: column; gap: 8px; }
+.siis-admin-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: 12px;
+  background: var(--surface);
+  padding: 14px 20px;
+  border: 1px solid var(--border);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+.siis-admin-list-item--block { align-items: flex-start; }
+.siis-admin-item-name {
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+.siis-admin-item-meta {
+  margin-top: 2px;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text3);
+}
+.siis-admin-edit-btn {
+  border-radius: 8px;
+  padding: 5px 12px;
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--blue);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+.siis-admin-edit-btn:hover { background: var(--blue-bg); }
+.siis-admin-add-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 10px;
+  border: 1px solid var(--border2);
+  background: var(--blue-bg);
+  padding: 7px 16px;
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--blue);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.siis-admin-add-btn:hover { background: #dbeafe; }
+.siis-admin-count { font-family: var(--mono); font-size: 11px; color: var(--text3); }
+.siis-admin-empty {
+  border-radius: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 48px 20px;
+  text-align: center;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text3);
+}
+.siis-admin-tag {
+  border-radius: 20px;
+  background: var(--surface3);
+  padding: 2px 8px;
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 500;
+  color: var(--text2);
+}
+.siis-admin-tag--blue { background: var(--blue-bg); color: var(--blue); }
+.siis-admin-tag--amber { background: rgba(217,119,6,0.08); color: #92400e; border: 1px solid rgba(217,119,6,0.25); }
+.siis-admin-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.siis-admin-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-family: var(--sans);
+  font-size: 13px;
+  color: var(--text2);
+}
+.siis-admin-row-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.siis-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }

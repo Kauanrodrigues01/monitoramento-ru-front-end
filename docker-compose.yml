@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: monitoramento-ru-frontend
+    environment:
+      - NODE_ENV=production
+      - VITE_API_URL=${VITE_API_URL}
+      - VITE_APP_GEO_SECRET=${VITE_APP_GEO_SECRET}
+      - VITE_DEBUG=${VITE_DEBUG:-false}
+    restart: unless-stopped
+    networks:
+      - monitoramento-ru
+    # Descomentar para desenvolvimento com hot-reload
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile.dev
+    # volumes:
+    #   - .:/app
+    #   - /app/node_modules
+    # command: npm run dev
+    # ports:
+    #   - "5173:5173"
+
+networks:
+  monitoramento-ru:
+    driver: bridge
