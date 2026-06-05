@@ -106,6 +106,15 @@ export type ScheduleExceptionCreate = {
 
 export type ScheduleExceptionUpdate = Partial<Omit<ScheduleExceptionCreate, 'exception_date'>>;
 
+export type MetricsSummary = {
+  total_active_restaurants: number;
+  open_now: number;
+  reports_last_15m: number;
+  reports_today: number;
+  status_distribution: Partial<Record<SnapshotStatusEnum, number>>;
+  avg_confidence: number | null;
+};
+
 export type SnapshotUpdatedEvent = {
   type: 'snapshot_updated';
   restaurant_public_id: string;

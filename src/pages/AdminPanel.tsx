@@ -2,16 +2,19 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { ApiError } from '../api/client';
 import { exceptionsApi } from '../api/exceptions';
+import { metricsApi } from '../api/metrics';
 import { restaurantsApi } from '../api/restaurants';
 import { schedulesApi } from '../api/schedules';
 import type {
   CampusEnum,
   ExceptionTypeEnum,
   MealPeriodEnum,
+  MetricsSummary,
   Restaurant,
   RestaurantSchedule,
   ScheduleException,
 } from '../api/types';
+import { MetricsBanner } from '../components/MetricsBanner';
 import { useAdmin } from '../context/AdminContext';
 import {
   CAMPUS_LABELS_SHORT as CAMPUS_LABELS,
@@ -646,6 +649,17 @@ export function AdminPanel() {
   const { isAdmin } = useAdmin();
   const [tab, setTab] = useState<Tab>('restaurants');
   const [showChangeKey, setShowChangeKey] = useState(false);
+  const [metrics, setMetrics] = useState<MetricsSummary | null>(null);
+  const [metricsLoading, setMetricsLoading] = useState(true);
+
+  useEffect(() => {
+    const ac = new AbortController();
+    metricsApi.summary(ac.signal)
+      .then(setMetrics)
+      .catch(() => setMetrics(null))
+      .finally(() => setMetricsLoading(false));
+    return () => { ac.abort(); };
+  }, []);
 
   const TABS: { id: Tab; label: string }[] = [
     { id: 'restaurants', label: 'RESTAURANTES' },
@@ -664,6 +678,8 @@ export function AdminPanel() {
         userSelect: isAdmin ? 'auto' : 'none',
         transition: 'filter 0.25s ease',
       }}>
+        <MetricsBanner metrics={metrics} loading={metricsLoading} />
+
         <div className="siis-panel" style={{ marginBottom: 16 }}>
           <div className="siis-panel-header">
             <span className="siis-panel-title">PAINEL ADMIN</span>

@@ -736,6 +736,17 @@ body::after {
 .siis-cooldown-bar  { height: 3px; background: var(--border); border-radius: 2px; margin-top: 8px; overflow: hidden; }
 .siis-cooldown-fill { height: 100%; background: var(--blue3); transition: width 1s linear; }
 
+/* ── Metrics strip (visão geral) ── */
+.siis-metrics-strip {
+  grid-template-columns: repeat(2, 1fr);
+}
+@media (min-width: 768px) {
+  .siis-metrics-strip { grid-template-columns: repeat(3, 1fr); }
+}
+@media (min-width: 1280px) {
+  .siis-metrics-strip { grid-template-columns: repeat(5, 1fr); }
+}
+
 /* ── Dashboard cards grid ── */
 .siis-cards-grid {
   display: grid;
